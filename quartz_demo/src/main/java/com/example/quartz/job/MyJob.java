@@ -4,6 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.quartz.*;
 
 @Slf4j
+@PersistJobDataAfterExecution // Stateful job
+// @DisallowConcurrentExecution // Prevent concurrent access to the same job
 public class MyJob implements Job {
 
     @Override
@@ -19,6 +21,8 @@ public class MyJob implements Job {
         // Record
         JobDataMap jobDataMap = jobDetail.getJobDataMap();
         Integer count = (Integer) jobDataMap.get("count");
-        log.info("count的值为：{}",count);
+        log.info("count的值为：{}",count++);
+        // Update shared data
+        jobDataMap.put("count",count);
     }
 }
