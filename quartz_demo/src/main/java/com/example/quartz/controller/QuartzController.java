@@ -54,4 +54,11 @@ public class QuartzController {
         JobUtils.runJobOnce(scheduler,jobName);
         return "Job invoke once success!";
     }
+
+    @GetMapping("/modify")
+    public String modify(){
+        JobBean jobBean = new JobBean(jobName,MyJob.class.getName(),"0/5 * * * * ? *");
+        JobUtils.modifyJob(scheduler,jobBean);
+        return "Job modify success!";
+    }
 }

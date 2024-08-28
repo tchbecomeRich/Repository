@@ -110,7 +110,11 @@ public class JobUtils {
             CronTrigger oldTrigger = (CronTrigger) scheduler.getTrigger(triggerKey);
             // Build a new trigger using a new cron expression
             String newCronExpress = jobBean.getCronExpression();
-
+            CronTrigger newTrigger = oldTrigger.getTriggerBuilder()
+                    .withSchedule(CronScheduleBuilder.cronSchedule(newCronExpress))
+                    .build();
+            // Use newest trigger
+            scheduler.rescheduleJob(triggerKey,newTrigger);
         } catch (SchedulerException e) {
             throw new RuntimeException(e);
         }
