@@ -12,5 +12,6 @@
 
 	<modules>
 		<module>quartz_demo</module>
-	</modules>
+        <module>netty</module>
+    </modules>
 </project>
