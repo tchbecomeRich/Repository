@@ -57,20 +57,27 @@ public class Server {
                     ServerSocketChannel channel = (ServerSocketChannel)key.channel();
                     SocketChannel sc = channel.accept();
                     sc.configureBlocking(false);
-                    SelectionKey scKey = sc.register(selector, 0, null);
+                    ByteBuffer buffer = ByteBuffer.allocate(16); //  附件
+                    // 将ByteBuffer 作为附件关联到selector上
+                    SelectionKey scKey = sc.register(selector, 0, buffer);
                     scKey.interestOps(SelectionKey.OP_READ);
                     log.debug("{}",sc);
                 }else if(key.isReadable()){
                     try{
                         SocketChannel channel = (SocketChannel) key.channel();
-                        ByteBuffer buffer = ByteBuffer.allocate(4);
+                        // 获取selectionKey 上获取关联附件
+                        ByteBuffer buffer = (ByteBuffer) key.attachment();
                         int read = channel.read(buffer);// 如果是正常断开，read的方法返回值是-1
                         if(read == -1){
                             key.cancel();
                         }else{
-                            buffer.flip();
-//                            ByteBufferUtil.debugAll(buffer);
-                            System.out.println(Charset.defaultCharset().decode(buffer));
+                            split(buffer);
+                            if(buffer.position() == buffer.limit()){
+                                ByteBuffer newBuffer = ByteBuffer.allocate(buffer.capacity() * 2);
+                                buffer.flip();
+                                newBuffer.put(buffer);
+                                key.attach(newBuffer);
+                            }
                         }
                     }catch (IOException e){
                         e.printStackTrace();
@@ -79,5 +86,20 @@ public class Server {
                 }
             }
         }
+    }
+
+    private static void split(ByteBuffer source){
+        source.flip();
+        for(int i = 0 ; i < source.limit() ; i++){
+            if(source.get(i) == '\n'){
+                int length = i - source.position() + 1;
+                ByteBuffer target = ByteBuffer.allocate(length);
+                for(int j = 0 ; j < length ; j++){
+                    target.put(source.get());
+                }
+                ByteBufferUtil.debugAll(target);
+            }
+        }
+        source.compact();
     }
 }
